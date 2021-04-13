@@ -45,7 +45,7 @@ impl<T: Number> Parametrizer<T>
     fn new(param: &str) -> Result<Parametrizer<T>, ParametrizerError>
     {
 
-        let term = term::parametrize_string::<T>(param);
+        let term = term::create_parametrization::<T>(param);
 
         match term
         {
