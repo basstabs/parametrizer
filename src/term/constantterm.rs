@@ -14,21 +14,26 @@ pub struct ConstantTerm<T: Number>
 /// # Examples
 ///
 /// ```
-/// use crate::parametrizer::term::constantterm::create_constant_term;
+/// use crate::parametrizer::term::constantterm::ConstantTerm;
 /// use crate::parametrizer::term::Term;
 ///
-/// let int_constant = create_constant_term::<i32>(17);
-/// let float_constant = create_constant_term::<f32>(5.2);
+/// let int_constant = ConstantTerm::new(17);
+/// let float_constant = ConstantTerm::new(5.2);
 ///
 /// assert_eq!(17, int_constant.evaluate(9));
 /// assert_eq!(17, int_constant.evaluate(-1));
 /// assert_eq!(5.2, float_constant.evaluate(3.4));
 /// assert_eq!(5.2, float_constant.evaluate(5.0));
 /// ```
-pub fn create_constant_term<T: Number>(param: T) -> ConstantTerm<T>
+impl<T:Number> ConstantTerm<T>
 {
 
-    return ConstantTerm::<T> { c: param };
+    pub fn new(param: T) -> ConstantTerm<T>
+    {
+
+        return ConstantTerm::<T> { c: param };
+
+    }
 
 }
 

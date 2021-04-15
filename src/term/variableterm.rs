@@ -11,19 +11,24 @@ pub struct VariableTerm
 /// # Examples
 /// 
 /// ```
-/// use crate::parametrizer::term::variableterm::create_variable_term;
+/// use crate::parametrizer::term::variableterm::VariableTerm;
 /// use crate::parametrizer::term::Term;
 ///
-/// let int_variable = create_variable_term();
-/// let float_variable = create_variable_term();
+/// let int_variable = VariableTerm::new();
+/// let float_variable = VariableTerm::new();
 ///
 /// assert_eq!(3, int_variable.evaluate(3));
 /// assert_eq!(4.5, float_variable.evaluate(4.5));
 /// ```
-pub fn create_variable_term() -> VariableTerm
+impl VariableTerm
 {
 
-    return VariableTerm {};
+    pub fn new() -> VariableTerm
+    {
+
+        return VariableTerm {};
+
+    }
 
 }
 

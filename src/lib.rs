@@ -1,13 +1,15 @@
 extern crate num;
 
 use num::Num;
+use num::ToPrimitive;
+use num::FromPrimitive;
 use std::str::FromStr;
 use std::fmt;
 
 pub mod term;
 
-pub trait Number: Num + FromStr + Copy + 'static {}
-impl<T: Num + FromStr + Copy + 'static> Number for T {}
+pub trait Number: Num + ToPrimitive + FromPrimitive + FromStr + Copy + 'static {}
+impl<T: Num + ToPrimitive + FromPrimitive + FromStr + Copy + 'static> Number for T {}
 
 #[derive(Debug)]
 pub struct ParametrizerError

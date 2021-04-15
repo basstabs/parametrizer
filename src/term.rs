@@ -1,4 +1,5 @@
 use crate::Number;
+use rand::Rng;
 
 pub mod constantterm;
 pub mod variableterm;
@@ -10,6 +11,9 @@ pub mod fractionterm;
 
 use super::ParametrizerError;
 
+const DYNAMIC_RANDOM_IDENTIFIER : &str = "rd(";
+const COMPUTED_RANDOM_IDENTIFIER : &str = "rc(";
+
 ///A trait used to represent a particular component of a parametrized function
 pub trait Term<T: Number>
 {
@@ -20,12 +24,27 @@ pub trait Term<T: Number>
 }
 
 ///Entry function for parametrizing, which does some QoL formatting on the param string
+///
+/// # Examples
+///
+/// ```
+/// use crate::parametrizer::term::create_parametrization;
+///
+/// let division = create_parametrization::<u32>("4\\2").unwrap();
+/// let subtraction = create_parametrization::<i32>("15-3*t").unwrap();
+/// let spaces = create_parametrization::<i32>("6 + T").unwrap();
+///
+/// assert_eq!(2, division.evaluate(8));
+/// assert_eq!(6, subtraction.evaluate(3));
+/// assert_eq!(8, spaces.evaluate(2));
+/// ```
 pub fn create_parametrization<T: Number>(text: &str) -> Result<Box<dyn Term<T>>, ParametrizerError>
 {
 
     let mut lower = text.to_lowercase();
     lower.retain(|c| { return !c.is_whitespace(); }); //Allow users to use comfortable spacing
     lower = lower.replace("\\", "/"); //Allow users to use either division symbol
+    lower = lower.replace("-", "+-"); //Allow users to implement subtraction, i.e. 1-t will be read as 1+-t. Extra leading +'s will be trimmed during recursion
 
     let param = &lower[0..];
 
@@ -47,6 +66,7 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
     return parametrize_string(param);
 
 }
+
 ///The main function which enables us to convert a string into a recursive stack of functions
 ///
 /// # Examples
@@ -95,6 +115,27 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
 /// assert_eq!(2, division.evaluate(3));
 /// assert_eq!(3, division.evaluate(2));
 /// ```
+///
+/// ```
+/// use crate::parametrizer::term::parametrize_string;
+///
+/// let equation = parametrize_string::<i32>("13+-t").unwrap();
+/// let negation = parametrize_string::<i32>("-t").unwrap();
+///
+/// assert_eq!(10, equation.evaluate(3));
+/// assert_eq!(-9, negation.evaluate(9));
+/// ```
+///
+/// ```
+/// use crate::parametrizer::term::parametrize_string;
+///
+/// let dynamic_rand = parametrize_string::<i32>("rd(2+t=4*t)").unwrap();
+/// let computed_rand = parametrize_string::<i32>("rc(4=8)").unwrap();
+///
+/// assert_eq!(computed_rand.evaluate(2), computed_rand.evaluate(4));
+/// assert!(4 <= dynamic_rand.evaluate(2));
+/// assert!(16 > dynamic_rand.evaluate(4));
+/// ```
 pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, ParametrizerError>
 {
 
@@ -103,7 +144,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
     if param.eq("t")
     {
 
-        return Ok(Box::new(variableterm::create_variable_term()));
+        return Ok(Box::new(variableterm::VariableTerm::new()));
 
     }
 
@@ -113,17 +154,26 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
     match c
     {
 
-        Ok(c) => return Ok(Box::new(constantterm::create_constant_term(c))),
+        Ok(c) => return Ok(Box::new(constantterm::ConstantTerm::new(c))),
         Err(_e) => ()
 
     };
-   
+
     //Simplification case: If the entire string is in parentheses, slice them off and recurse
     let length = param.len();
     if param.starts_with("(") && param.ends_with(")")
     {
 
         return parametrize_string::<T>(&(param[1..length - 1]));
+
+    }
+
+    //Simplification case: If the first character is a +, then remove it and recurse. Happens
+    //because a leading - was replaced by +- in create_parametrization
+    if param.starts_with("+")
+    {
+
+        return parametrize_string::<T>(&(param[1..]));
 
     }
 
@@ -148,7 +198,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
 
             }
 
-            return Ok(Box::new(sequenceterm::create_sequence_term(sum_terms, sequenceterm::SequenceOperations::Addition)));
+            return Ok(Box::new(sequenceterm::SequenceTerm::new(sum_terms, sequenceterm::SequenceOperations::Addition)));
 
         }
 
@@ -175,7 +225,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
 
             }
 
-            return Ok(Box::new(sequenceterm::create_sequence_term(product_terms, sequenceterm::SequenceOperations::Multiplication)));
+            return Ok(Box::new(sequenceterm::SequenceTerm::new(product_terms, sequenceterm::SequenceOperations::Multiplication)));
 
         }
 
@@ -202,13 +252,93 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
             let numerator = parametrize_string(terms[0])?;
             let denominator = parametrize_string(terms[1])?;
 
-            return Ok(Box::new(fractionterm::create_fraction_term(numerator, denominator)));
+            return Ok(Box::new(fractionterm::FractionTerm::new(numerator, denominator)));
 
         }
 
     }
 
-    return Err(ParametrizerError { param: param.to_string(), reason: "Did not match any cases." });
+    //Recursive case: Check for a negative sign leading the term. As we have remove the top level
+    //of binary operations, negate the remaining term
+    if param.starts_with("-")
+    {
+
+        let term = parametrize_string(&(param[1..]))?;
+
+        return Ok(Box::new(scalarterm::ScalarTerm::new(term, T::zero() - T::one())));
+
+    }
+
+    //Recursive case: Check for a leading "rd", which designates a dynamic random value which
+    //changes each time evaluate is called. It is bounded between the first and second term.
+    if param.starts_with(DYNAMIC_RANDOM_IDENTIFIER) && param.ends_with(")")
+    {
+
+        let simplified_param = &(param[DYNAMIC_RANDOM_IDENTIFIER.len()..param.len() - 1]);
+        let splits : Vec<&str> = simplified_param.split("=").collect();
+
+        if splits.len() != 2
+        {
+
+            return Err(ParametrizerError { param: param.to_string(), reason: "Random parametrization did not split into exactly two terms." });
+
+        }
+
+        let min = parametrize_string(splits[0])?;
+        let max = parametrize_string(splits[1])?;
+
+        return Ok(Box::new(randomterm::RandomTerm::new(min, max)));
+
+    }
+
+    //Terminal case: Check for a leading "rc", which designates a computed random value which is
+    //calculated at parametrize time and never changes.
+     if param.starts_with(COMPUTED_RANDOM_IDENTIFIER) && param.ends_with(")")
+    {
+
+        let simplified_param = &(param[COMPUTED_RANDOM_IDENTIFIER.len()..param.len() - 1]);
+        let splits : Vec<&str> = simplified_param.split("=").collect();
+
+        if splits.len() != 2
+        {
+
+            return Err(ParametrizerError { param: param.to_string(), reason: "Random parametrization did not split into exactly two terms." });
+
+        }
+
+        let min = splits[0].parse();
+        let max = splits[1].parse();
+
+        let min = match min
+        {
+
+            Ok(m) => m,
+            Err(e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the minimum value as a number for computed random generation."})
+
+        };
+
+        let max = match max
+        {
+
+            Ok(m) => m,
+            Err(e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the maximum value as a umber for computed random generation."})
+
+        };
+
+        let constant = T::from_f64(rand::thread_rng().gen_range(min..max));
+        let constant = match constant
+        {
+
+            Some(c) => c,
+            None => return Err(ParametrizerError {param: param.to_string(), reason: "Could not convert to the generic type T from f64 for computed random generation."})
+
+        };
+
+        return Ok(Box::new(constantterm::ConstantTerm::new(constant)));
+
+    }
+
+    return Err(ParametrizerError { param: param.to_string(), reason: "Did not match any cases. Do not forget to write multiplication explicitly, i.e. 'n*t' as opposed to 'nt'." });
 
 }
 
