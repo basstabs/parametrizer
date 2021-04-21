@@ -1,5 +1,5 @@
-# Parametrizer
-A simple, safe crate for parsing properly-formatted math strings which represent parametric functions into Rust functions that compute them.
+# parametrizer
+A simple, safe crate for parsing properly-formatted math strings which represent parametric functions into Rust functions that compute them. Ported from an earlier version for Javascript.
 
 ### Example Usage
 
