@@ -3,6 +3,7 @@ name = "parametrizer"
 license = "MIT OR Apache-2.0"
 description = "A simple, safe crate for parsing properly-formatted math strings representing parametric functions into Rust functions."
 version = "0.0.0"
+repository = "https://github.com/basstabs/parametrizer"
 authors = ["basstabs <babsstabs@gmail.com>"]
 edition = "2018"
 
