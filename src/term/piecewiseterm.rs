@@ -1,6 +1,5 @@
 use crate::Number;
 use super::Term;
-use super::constantterm;
 
 ///A struct assigning to each piece of the function a time after which it is applicable. The term
 ///will be the evluated one until t passes the next part's after value

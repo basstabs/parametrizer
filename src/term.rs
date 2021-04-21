@@ -105,7 +105,7 @@ pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFu
             {
 
                 Ok(t) => t,
-                Err(e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the time value for piecewise part."})
+                Err(_e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the time value for piecewise part."})
 
             };
 
@@ -190,6 +190,16 @@ pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFu
 /// assert_eq!(computed_rand.evaluate(2), computed_rand.evaluate(4));
 /// assert!(4 <= dynamic_rand.evaluate(2));
 /// assert!(16 > dynamic_rand.evaluate(4));
+/// ```
+///
+/// ```
+/// use crate::parametrizer::term::parametrize_string;
+/// use crate::parametrizer::ParametrizerFunction;
+///
+/// let sin = parametrize_string::<f64>("sin(2*t)", &[ParametrizerFunction::new("sin".to_string(), f64::sin)]).unwrap();
+///
+/// assert_eq!(4.0_f64.sin(), sin.evaluate(2.0));
+/// assert_eq!(8.0_f64.sin(), sin.evaluate(4.0));
 /// ```
 pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunction]) -> Result<Box<dyn Term<T>>, ParametrizerError>
 {
@@ -387,7 +397,7 @@ pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunct
         {
 
             Ok(m) => m,
-            Err(e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the minimum value as a number for computed random generation."})
+            Err(_e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the minimum value as a number for computed random generation."})
 
         };
 
@@ -395,7 +405,7 @@ pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunct
         {
 
             Ok(m) => m,
-            Err(e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the maximum value as a umber for computed random generation."})
+            Err(_e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the maximum value as a umber for computed random generation."})
 
         };
 
@@ -493,7 +503,7 @@ fn respectful_symbol_split<'a>(param: &'a str, splitter: char, left: char, right
 }
 
 #[cfg(test)]
-mod split_tests
+mod term_tests
 {
 
     use super::*;

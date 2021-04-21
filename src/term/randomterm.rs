@@ -11,34 +11,32 @@ pub struct RandomTerm<T: Number>
 
 }
 
-///A term which randomly generates values between the given min and max terms
-///
-/// # Examples
-///
-/// ```
-/// use crate::parametrizer::term::randomterm::RandomTerm;
-/// use crate::parametrizer::term::variableterm::VariableTerm;
-/// use crate::parametrizer::term::constantterm::ConstantTerm;
-/// use crate::parametrizer::term::Term;
-///
-/// let const1 = ConstantTerm::new(6);
-/// let const2 = ConstantTerm::new(10);
-/// let const3 = ConstantTerm::new(2.5);
-/// let variable = VariableTerm::new();
-///
-/// let rand1 = RandomTerm::new(Box::new(const1), Box::new(const2));
-/// let rand2 = RandomTerm::new(Box::new(const3), Box::new(variable));
-///
-/// assert!(rand1.evaluate(2) < 10);
-/// assert!(rand1.evaluate(9) >= 6);
-/// assert!(rand2.evaluate(3.0) >= 2.5);
-/// assert!(rand2.evaluate(15.0) < 15.0);
-/// ```
-///
-///
 impl<T: Number> RandomTerm<T>
 {
 
+    ///A term which randomly generates values between the given min and max terms
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::parametrizer::term::randomterm::RandomTerm;
+    /// use crate::parametrizer::term::variableterm::VariableTerm;
+    /// use crate::parametrizer::term::constantterm::ConstantTerm;
+    /// use crate::parametrizer::term::Term;
+    ///
+    /// let const1 = ConstantTerm::new(6);
+    /// let const2 = ConstantTerm::new(10);
+    /// let const3 = ConstantTerm::new(2.5);
+    /// let variable = VariableTerm::new();
+    ///
+    /// let rand1 = RandomTerm::new(Box::new(const1), Box::new(const2));
+    /// let rand2 = RandomTerm::new(Box::new(const3), Box::new(variable));
+    ///
+    /// assert!(rand1.evaluate(2) < 10);
+    /// assert!(rand1.evaluate(9) >= 6);
+    /// assert!(rand2.evaluate(3.0) >= 2.5);
+    /// assert!(rand2.evaluate(15.0) < 15.0);
+    /// ```
     pub fn new(min: Box<dyn Term<T>>, max: Box<dyn Term<T>>) -> RandomTerm<T>
     {
 

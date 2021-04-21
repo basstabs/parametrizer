@@ -19,50 +19,50 @@ pub struct SequenceTerm<T: Number>
 
 }
 
-///Creates a sequence term from the list of terms and the given operation
-///
-/// # Examples
-///
-/// ```
-/// use crate::parametrizer::term::constantterm::ConstantTerm;
-/// use crate::parametrizer::term::variableterm::VariableTerm;
-/// use crate::parametrizer::term::sequenceterm::SequenceOperations;
-/// use crate::parametrizer::term::sequenceterm::SequenceTerm;
-/// use crate::parametrizer::term::Term;
-///
-/// let const1 = Box::new(ConstantTerm::new(13));
-/// let const2 = Box::new(ConstantTerm::new(5));
-/// let variable = Box::new(VariableTerm::new());
-///
-/// let terms : Vec<Box<dyn Term<i32>>> = vec![const1, const2, variable];
-///
-/// let addition = SequenceTerm::new(terms, SequenceOperations::Addition);
-///
-/// assert_eq!(19, addition.evaluate(1));
-/// assert_eq!(24, addition.evaluate(6));
-/// ```
-///
-/// ```
-/// use crate::parametrizer::term::constantterm::ConstantTerm;
-/// use crate::parametrizer::term::variableterm::VariableTerm;
-/// use crate::parametrizer::term::sequenceterm::SequenceOperations;
-/// use crate::parametrizer::term::sequenceterm::SequenceTerm;
-/// use crate::parametrizer::term::Term;
-///
-/// let const1 = Box::new(ConstantTerm::new(13));
-/// let const2 = Box::new(ConstantTerm::new(5));
-/// let variable = Box::new(VariableTerm::new());
-///
-/// let terms : Vec<Box<dyn Term<i32>>> = vec![const1, const2, variable];
-///
-/// let addition = SequenceTerm::new(terms, SequenceOperations::Multiplication);
-///
-/// assert_eq!(65, addition.evaluate(1));
-/// assert_eq!(390, addition.evaluate(6)); 
-/// ```
 impl<T: Number> SequenceTerm<T>
 {
 
+    ///Creates a sequence term from the list of terms and the given operation
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::parametrizer::term::constantterm::ConstantTerm;
+    /// use crate::parametrizer::term::variableterm::VariableTerm;
+    /// use crate::parametrizer::term::sequenceterm::SequenceOperations;
+    /// use crate::parametrizer::term::sequenceterm::SequenceTerm;
+    /// use crate::parametrizer::term::Term;
+    ///
+    /// let const1 = Box::new(ConstantTerm::new(13));
+    /// let const2 = Box::new(ConstantTerm::new(5));
+    /// let variable = Box::new(VariableTerm::new());
+    ///
+    /// let terms : Vec<Box<dyn Term<i32>>> = vec![const1, const2, variable];
+    ///
+    /// let addition = SequenceTerm::new(terms, SequenceOperations::Addition);
+    ///
+    /// assert_eq!(19, addition.evaluate(1));
+    /// assert_eq!(24, addition.evaluate(6));
+    /// ```
+    ///
+    /// ```
+    /// use crate::parametrizer::term::constantterm::ConstantTerm;
+    /// use crate::parametrizer::term::variableterm::VariableTerm;
+    /// use crate::parametrizer::term::sequenceterm::SequenceOperations;
+    /// use crate::parametrizer::term::sequenceterm::SequenceTerm;
+    /// use crate::parametrizer::term::Term;
+    ///
+    /// let const1 = Box::new(ConstantTerm::new(13));
+    /// let const2 = Box::new(ConstantTerm::new(5));
+    /// let variable = Box::new(VariableTerm::new());
+    ///
+    /// let terms : Vec<Box<dyn Term<i32>>> = vec![const1, const2, variable];
+    ///
+    /// let addition = SequenceTerm::new(terms, SequenceOperations::Multiplication);
+    ///
+    /// assert_eq!(65, addition.evaluate(1));
+    /// assert_eq!(390, addition.evaluate(6)); 
+    /// ```
     pub fn new(terms: Vec<Box<dyn Term<T>>>, operation: SequenceOperations) -> SequenceTerm<T>
     {
 
