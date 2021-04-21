@@ -65,8 +65,8 @@ pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFu
 /// ```
 /// use crate::parametrizer::term::quick_parametrization;
 ///
-/// let p1 = quick_parametrization::<i32>("p2>0=4>2=8>6", &[]).unwrap();
-/// let p2 = quick_parametrization::<i32>("p2*t>0=4>2", &[]).unwrap();
+/// let p1 = quick_parametrization::<i32>("p2>0|4>2|8>6", &[]).unwrap();
+/// let p2 = quick_parametrization::<i32>("p2*t>0|4>2", &[]).unwrap();
 /// let eq = quick_parametrization::<f32>("4+2*t", &[]).unwrap();
 ///
 /// assert_eq!(2, p1.evaluate(1));
@@ -83,7 +83,7 @@ pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFu
 
         let parts_string = &(param[PIECEWISE_IDENTIFIER.len()..]);
 
-        let parts : Vec<&str> = parts_string.split("=").collect();
+        let parts : Vec<&str> = parts_string.split("|").collect();
 
         let mut piecewise = piecewiseterm::PiecewiseTerm::new();
 
@@ -184,8 +184,8 @@ pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFu
 /// ```
 /// use crate::parametrizer::term::parametrize_string;
 ///
-/// let dynamic_rand = parametrize_string::<i32>("rd(2+t=4*t)", &[]).unwrap();
-/// let computed_rand = parametrize_string::<i32>("rc(4=8)", &[]).unwrap();
+/// let dynamic_rand = parametrize_string::<i32>("rd(2+t<4*t)", &[]).unwrap();
+/// let computed_rand = parametrize_string::<i32>("rc(4<8)", &[]).unwrap();
 ///
 /// assert_eq!(computed_rand.evaluate(2), computed_rand.evaluate(4));
 /// assert!(4 <= dynamic_rand.evaluate(2));
@@ -340,7 +340,7 @@ pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunct
     {
 
         let simplified_param = &(param[DYNAMIC_RANDOM_IDENTIFIER.len()..param.len() - 1]);
-        let splits : Vec<&str> = simplified_param.split("=").collect();
+        let splits : Vec<&str> = simplified_param.split("<").collect();
 
         if splits.len() != 2
         {
@@ -381,7 +381,7 @@ pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunct
     {
 
         let simplified_param = &(param[COMPUTED_RANDOM_IDENTIFIER.len()..param.len() - 1]);
-        let splits : Vec<&str> = simplified_param.split("=").collect();
+        let splits : Vec<&str> = simplified_param.split("<").collect();
 
         if splits.len() != 2
         {
