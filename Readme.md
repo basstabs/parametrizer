@@ -14,7 +14,7 @@ Then simply create a Parametrizer struct and call the evaluate method:
 ```rust
 use parametrizer::Parametrizer;
 
-let parametric_function = Parametrizer::new("1+2*t*t");
+let parametric_function = Parametrizer::new("1+2*t*t").unwrap();
 
 assert_eq!(19.0, parametric_function.evaluate(3.0));
 ```
