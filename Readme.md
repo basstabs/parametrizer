@@ -6,7 +6,7 @@ A simple, safe crate for parsing properly-formatted math strings which represent
 Include the crate in your Cargo.toml file:
 
 ```toml
-parametrizer = "0.0.0"
+parametrizer = "1.0.0"
 ```
 
 Then simply create a Parametrizer struct and call the evaluate method:
