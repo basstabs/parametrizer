@@ -8,11 +8,15 @@ pub mod scalarterm;
 pub mod randomterm;
 pub mod piecewiseterm;
 pub mod fractionterm;
+pub mod functionterm;
 
 use super::ParametrizerError;
+use super::ParametrizerFunction;
 
 const DYNAMIC_RANDOM_IDENTIFIER : &str = "rd(";
 const COMPUTED_RANDOM_IDENTIFIER : &str = "rc(";
+
+const PIECEWISE_IDENTIFIER : &str = "p";
 
 ///A trait used to represent a particular component of a parametrized function
 pub trait Term<T: Number>
@@ -30,15 +34,15 @@ pub trait Term<T: Number>
 /// ```
 /// use crate::parametrizer::term::create_parametrization;
 ///
-/// let division = create_parametrization::<u32>("4\\2").unwrap();
-/// let subtraction = create_parametrization::<i32>("15-3*t").unwrap();
-/// let spaces = create_parametrization::<i32>("6 + T").unwrap();
+/// let division = create_parametrization::<u32>("4\\2", &[]).unwrap();
+/// let subtraction = create_parametrization::<i32>("15-3*t", &[]).unwrap();
+/// let spaces = create_parametrization::<i32>("6 + T", &[]).unwrap();
 ///
 /// assert_eq!(2, division.evaluate(8));
 /// assert_eq!(6, subtraction.evaluate(3));
 /// assert_eq!(8, spaces.evaluate(2));
 /// ```
-pub fn create_parametrization<T: Number>(text: &str) -> Result<Box<dyn Term<T>>, ParametrizerError>
+pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFunction]) -> Result<Box<dyn Term<T>>, ParametrizerError>
 {
 
     let mut lower = text.to_lowercase();
@@ -46,24 +50,75 @@ pub fn create_parametrization<T: Number>(text: &str) -> Result<Box<dyn Term<T>>,
     lower = lower.replace("\\", "/"); //Allow users to use either division symbol
     lower = lower.replace("-", "+-"); //Allow users to implement subtraction, i.e. 1-t will be read as 1+-t. Extra leading +'s will be trimmed during recursion
 
-    let param = &lower[0..];
+    let param = &(lower[0..]);
 
-    return quick_parametrization(param);
+    return quick_parametrization(param, functions);
 
 }
 
 ///Checks the piecewise case, which can only occur at the top level, then recurses normally using
 ///parametrize_string. Can be called directly with a properly formatted param string to avoid the
 ///potentially expensive formatting operations of create_parametrization
-pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, ParametrizerError>
+///
+/// # Examples
+///
+/// ```
+/// use crate::parametrizer::term::quick_parametrization;
+///
+/// let p1 = quick_parametrization::<i32>("p2>0=4>2=8>6", &[]).unwrap();
+/// let p2 = quick_parametrization::<i32>("p2*t>0=4>2", &[]).unwrap();
+/// let eq = quick_parametrization::<f32>("4+2*t", &[]).unwrap();
+///
+/// assert_eq!(2, p1.evaluate(1));
+/// assert_eq!(4, p1.evaluate(5));
+/// assert_eq!(2, p2.evaluate(1));
+/// assert_eq!(4, p2.evaluate(9));
+/// assert_eq!(9.0, eq.evaluate(2.5));
+/// ```
+pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFunction]) ->Result<Box<dyn Term<T>>, ParametrizerError>
 {
 
-    if param.starts_with("p") //Piecewise case
+    if param.starts_with(PIECEWISE_IDENTIFIER) //Piecewise case
     {
+
+        let parts_string = &(param[PIECEWISE_IDENTIFIER.len()..]);
+
+        let parts : Vec<&str> = parts_string.split("=").collect();
+
+        let mut piecewise = piecewiseterm::PiecewiseTerm::new();
+
+        for part in parts
+        {
+
+            let part_info : Vec<&str> = part.split(">").collect();
+
+            if part_info.len() != 2
+            {
+
+                return Err(ParametrizerError { param: param.to_string(), reason: "Unexpected number of splits for piecewise part. Each part should be separated by an = sign and contain a term and a number separated by a >" });
+
+            }
+
+            let term = parametrize_string(part_info[0], functions)?;
+
+            let time = match part_info[1].parse()
+            {
+
+                Ok(t) => t,
+                Err(e) => return Err(ParametrizerError { param: param.to_string(), reason: "Could not parse the time value for piecewise part."})
+
+            };
+
+            piecewise.add_part(term, time);
+
+        }
+
+        return Ok(Box::new(piecewise));
+
     }
 
     //Not piecewise, recurse normally
-    return parametrize_string(param);
+    return parametrize_string(param, functions);
 
 }
 
@@ -74,7 +129,7 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
 /// ```
 /// use crate::parametrizer::term::parametrize_string;
 ///
-/// let constant = parametrize_string::<f32>("1.35").unwrap();
+/// let constant = parametrize_string::<f32>("1.35", &[]).unwrap();
 ///
 /// assert_eq!(1.35, (*constant).evaluate(2.0));
 /// assert_eq!(1.35, (*constant).evaluate(3.4));
@@ -83,7 +138,7 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
 /// ```
 /// use crate::parametrizer::term::parametrize_string;
 ///
-/// let variable = parametrize_string::<f32>("t").unwrap();
+/// let variable = parametrize_string::<f32>("t", &[]).unwrap();
 ///
 /// assert_eq!(3.0, (*variable).evaluate(3.0));
 /// assert_ne!(4.2, (*variable).evaluate(1.25));
@@ -92,7 +147,7 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
 /// ```
 /// use crate::parametrizer::term::parametrize_string;
 ///
-/// let addition = parametrize_string::<f32>("1+t").unwrap();
+/// let addition = parametrize_string::<f32>("1+t", &[]).unwrap();
 ///
 /// assert_eq!(9.0, addition.evaluate(8.0));
 /// assert_eq!(1.16, addition.evaluate(0.16));
@@ -101,7 +156,7 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
 /// ```
 /// use crate::parametrizer::term::parametrize_string;
 ///
-/// let equation = parametrize_string::<i32>("13+((2*t)+5)").unwrap();
+/// let equation = parametrize_string::<i32>("13+((2*t)+5)", &[]).unwrap();
 ///
 /// assert_eq!(20, equation.evaluate(1));
 /// assert_eq!(30, equation.evaluate(6));
@@ -110,7 +165,7 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
 /// ```
 /// use crate::parametrizer::term::parametrize_string;
 ///
-/// let division = parametrize_string::<i32>("6/t").unwrap();
+/// let division = parametrize_string::<i32>("6/t", &[]).unwrap();
 ///
 /// assert_eq!(2, division.evaluate(3));
 /// assert_eq!(3, division.evaluate(2));
@@ -119,8 +174,8 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
 /// ```
 /// use crate::parametrizer::term::parametrize_string;
 ///
-/// let equation = parametrize_string::<i32>("13+-t").unwrap();
-/// let negation = parametrize_string::<i32>("-t").unwrap();
+/// let equation = parametrize_string::<i32>("13+-t", &[]).unwrap();
+/// let negation = parametrize_string::<i32>("-t", &[]).unwrap();
 ///
 /// assert_eq!(10, equation.evaluate(3));
 /// assert_eq!(-9, negation.evaluate(9));
@@ -129,14 +184,14 @@ pub fn quick_parametrization<T: Number>(param: &str) ->Result<Box<dyn Term<T>>, 
 /// ```
 /// use crate::parametrizer::term::parametrize_string;
 ///
-/// let dynamic_rand = parametrize_string::<i32>("rd(2+t=4*t)").unwrap();
-/// let computed_rand = parametrize_string::<i32>("rc(4=8)").unwrap();
+/// let dynamic_rand = parametrize_string::<i32>("rd(2+t=4*t)", &[]).unwrap();
+/// let computed_rand = parametrize_string::<i32>("rc(4=8)", &[]).unwrap();
 ///
 /// assert_eq!(computed_rand.evaluate(2), computed_rand.evaluate(4));
 /// assert!(4 <= dynamic_rand.evaluate(2));
 /// assert!(16 > dynamic_rand.evaluate(4));
 /// ```
-pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, ParametrizerError>
+pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunction]) -> Result<Box<dyn Term<T>>, ParametrizerError>
 {
 
     //Terminal case: check if the passed in string is simply "t", in which case we want a variable
@@ -164,7 +219,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
     if param.starts_with("(") && param.ends_with(")")
     {
 
-        return parametrize_string::<T>(&(param[1..length - 1]));
+        return parametrize_string::<T>(&(param[1..length - 1]), functions);
 
     }
 
@@ -173,7 +228,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
     if param.starts_with("+")
     {
 
-        return parametrize_string::<T>(&(param[1..]));
+        return parametrize_string::<T>(&(param[1..]), functions);
 
     }
 
@@ -192,7 +247,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
             for term in terms
             {
 
-                let new_term = parametrize_string(term)?;
+                let new_term = parametrize_string(term, functions)?;
 
                 sum_terms.push(new_term);
 
@@ -211,7 +266,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
 
         let terms = respectful_symbol_split(param, '*', '(', ')')?;
 
-        if terms.len() > 1 //If we actually split, then create a SequenceTerm multiplying thevalues. If there is no split, continue to a different case
+        if terms.len() > 1 //If we actually split, then create a SequenceTerm multiplying the values. If there is no split, continue to a different case
         {
 
             let mut product_terms = Vec::new();
@@ -219,7 +274,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
             for term in terms
             {
 
-                let new_term = parametrize_string(term)?;
+                let new_term = parametrize_string(term, functions)?;
 
                 product_terms.push(new_term);
 
@@ -249,8 +304,8 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
 
             }
 
-            let numerator = parametrize_string(terms[0])?;
-            let denominator = parametrize_string(terms[1])?;
+            let numerator = parametrize_string(terms[0], functions)?;
+            let denominator = parametrize_string(terms[1], functions)?;
 
             return Ok(Box::new(fractionterm::FractionTerm::new(numerator, denominator)));
 
@@ -263,7 +318,7 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
     if param.starts_with("-")
     {
 
-        let term = parametrize_string(&(param[1..]))?;
+        let term = parametrize_string(&(param[1..]), functions)?;
 
         return Ok(Box::new(scalarterm::ScalarTerm::new(term, T::zero() - T::one())));
 
@@ -284,16 +339,35 @@ pub fn parametrize_string<T: Number>(param: &str) -> Result<Box<dyn Term<T>>, Pa
 
         }
 
-        let min = parametrize_string(splits[0])?;
-        let max = parametrize_string(splits[1])?;
+        let min = parametrize_string(splits[0], functions)?;
+        let max = parametrize_string(splits[1], functions)?;
 
         return Ok(Box::new(randomterm::RandomTerm::new(min, max)));
 
     }
 
+    //Recursive case:: Check for a leading predefined function shorthand and create a function term
+    //using it and the interior term
+    for function in functions
+    {
+
+        let shorthand = function.shorthand();
+        if param.starts_with(&shorthand) && param.ends_with(")")
+        {
+
+            let simplified_param = &(param[shorthand.len()..param.len() - 1]);
+
+            let term = parametrize_string(simplified_param, functions)?;
+
+            return Ok(Box::new(functionterm::FunctionTerm::new(term, function.function())));
+
+        }
+
+    }
+
     //Terminal case: Check for a leading "rc", which designates a computed random value which is
     //calculated at parametrize time and never changes.
-     if param.starts_with(COMPUTED_RANDOM_IDENTIFIER) && param.ends_with(")")
+    if param.starts_with(COMPUTED_RANDOM_IDENTIFIER) && param.ends_with(")")
     {
 
         let simplified_param = &(param[COMPUTED_RANDOM_IDENTIFIER.len()..param.len() - 1]);
@@ -463,7 +537,7 @@ mod split_tests
     fn test_division ()
     {
 
-        let division = parametrize_string::<f32>("6/(t+1)/2");
+        let division = parametrize_string::<f32>("6/(t+1)/2", &[]);
 
         match division
         {
