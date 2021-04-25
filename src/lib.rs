@@ -161,6 +161,7 @@ impl<T: Number> Parametrizer<T>
     /// assert_eq!(7.0_f64.ln(), logarithm_and_square.evaluate(2.0));
     /// assert_eq!(28.0_f64.ln(), logarithm_and_square.evaluate(5.0));
     /// ```
+    // ANCHOR: function
     pub fn new_functions(param: &str, functions: Vec<ParametrizerFunction>) -> Result<Parametrizer<T>, ParametrizerError>
     {
 
@@ -169,6 +170,7 @@ impl<T: Number> Parametrizer<T>
         return Ok(Parametrizer::<T> { term });
 
     }
+    // ANCHOR_END: function
 
     ///Constructor which skips the added string formatting of Parametrizer::new and
     ///Parametrizer::new_functions, potentially speeding up parsing at the cost of unpredictable
@@ -194,6 +196,7 @@ impl<T: Number> Parametrizer<T>
     /// assert_eq!(11.0_f64.sin(), sin.evaluate(3.0));
     /// assert_eq!(8.0_f64.ln(), log.evaluate(5.0));
     /// ```
+    // ANCHOR: quick
     pub fn quick_new(param: &str, functions: Vec<ParametrizerFunction>) -> Result<Parametrizer<T>, ParametrizerError>
     {
 
@@ -202,6 +205,7 @@ impl<T: Number> Parametrizer<T>
         return Ok(Parametrizer::<T> { term });
 
     }
+    // ANCHOR_END: quick
 
     ///Used to compute the parametric function at a specific point. As the parsing is done once at
     ///creation time, the only overhead is due to pointers and recursion.
