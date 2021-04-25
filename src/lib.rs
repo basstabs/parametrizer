@@ -63,6 +63,7 @@ impl ParametrizerFunction
     {
 
         let shorthand = identifier.to_lowercase();
+        let shorthand = format!("{}(", shorthand);
 
         return ParametrizerFunction { shorthand, function };
 
@@ -70,10 +71,10 @@ impl ParametrizerFunction
 
     ///A function which returns the shorthand for the function as parsed by parametrize_string,
     ///i.e. adds a "(" to the end of the user-defined identifier.
-    pub fn shorthand(&self) -> String
+    pub fn shorthand(&self) -> &String
     {
 
-        return format!("{}(", self.shorthand);
+        return &self.shorthand;
 
     }
 
@@ -119,17 +120,19 @@ impl<T: Number> Parametrizer<T>
     /// assert_eq!(8, spaces.evaluate(2));
     /// assert_eq!(11.0_f64.sin(), sin.evaluate(3.0));
     /// ```
+    // ANCHOR: new
     pub fn new(param: &str) -> Result<Parametrizer<T>, ParametrizerError>
     {
 
         return Parametrizer::new_functions(param, vec![
         
-            ParametrizerFunction { shorthand: "sin".to_string(), function: f64::sin },
-            ParametrizerFunction { shorthand: "cos".to_string(), function: f64::cos }
+            ParametrizerFunction::new("sin".to_string(), f64::sin),
+            ParametrizerFunction::new("cos".to_string(), f64::cos)
 
         ]);
 
     }
+    // ANCHOR_END: new
 
     ///Constructor which allows for the user to define additional functions using a vector of
     ///ParametrizerFunction structs. Formats the param string like Parametrizer::new, with similar

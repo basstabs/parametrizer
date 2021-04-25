@@ -362,7 +362,8 @@ pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunct
     {
 
         let shorthand = function.shorthand();
-        if param.starts_with(&shorthand) && param.ends_with(")")
+        println!("{}", shorthand);
+        if param.starts_with(shorthand) && param.ends_with(")")
         {
 
             let simplified_param = &(param[shorthand.len()..param.len() - 1]);
