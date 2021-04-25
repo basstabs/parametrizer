@@ -143,12 +143,23 @@ impl<T: Number> Parametrizer<T>
     /// ```
     /// use crate::parametrizer::Parametrizer;
     /// use crate::parametrizer::ParametrizerFunction;
+    /// 
+    /// fn square(t: f64) -> f64
+    /// {
     ///
-    /// let logarithm = Parametrizer::new_functions("Log( t + 3 )", vec![
-    /// ParametrizerFunction::new("LOG".to_string(), f64::ln) ]).unwrap();
+    ///     return t * t;
     ///
-    /// assert_eq!(5.0_f64.ln(), logarithm.evaluate(2.0));
-    /// assert_eq!(8.0_f64.ln(), logarithm.evaluate(5.0));
+    /// }
+    ///
+    /// let logarithm_and_square = Parametrizer::new_functions("Log( square(t) + 3 )", vec![
+    ///
+    ///     ParametrizerFunction::new("LOG".to_string(), f64::ln),
+    ///     ParametrizerFunction::new("square".to_string(), square)
+    ///
+    /// ]).unwrap();
+    ///
+    /// assert_eq!(7.0_f64.ln(), logarithm_and_square.evaluate(2.0));
+    /// assert_eq!(28.0_f64.ln(), logarithm_and_square.evaluate(5.0));
     /// ```
     pub fn new_functions(param: &str, functions: Vec<ParametrizerFunction>) -> Result<Parametrizer<T>, ParametrizerError>
     {
