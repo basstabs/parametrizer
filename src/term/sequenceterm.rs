@@ -14,7 +14,7 @@ pub enum SequenceOperations
 pub struct SequenceTerm<T: Number>
 {
 
-    terms: Vec<Box<dyn Term<T>>>,
+    terms: Vec<Box<dyn Term<T> + Send + Sync>>,
     operation: SequenceOperations
 
 }
@@ -37,7 +37,7 @@ impl<T: Number> SequenceTerm<T>
     /// let const2 = Box::new(ConstantTerm::new(5));
     /// let variable = Box::new(VariableTerm::new());
     ///
-    /// let terms : Vec<Box<dyn Term<i32>>> = vec![const1, const2, variable];
+    /// let terms : Vec<Box<dyn Term<i32> + Send + Sync>> = vec![const1, const2, variable];
     ///
     /// let addition = SequenceTerm::new(terms, SequenceOperations::Addition);
     ///
@@ -56,14 +56,14 @@ impl<T: Number> SequenceTerm<T>
     /// let const2 = Box::new(ConstantTerm::new(5));
     /// let variable = Box::new(VariableTerm::new());
     ///
-    /// let terms : Vec<Box<dyn Term<i32>>> = vec![const1, const2, variable];
+    /// let terms : Vec<Box<dyn Term<i32> + Send + Sync>> = vec![const1, const2, variable];
     ///
     /// let addition = SequenceTerm::new(terms, SequenceOperations::Multiplication);
     ///
     /// assert_eq!(65, addition.evaluate(1));
     /// assert_eq!(390, addition.evaluate(6)); 
     /// ```
-    pub fn new(terms: Vec<Box<dyn Term<T>>>, operation: SequenceOperations) -> SequenceTerm<T>
+    pub fn new(terms: Vec<Box<dyn Term<T> + Send + Sync>>, operation: SequenceOperations) -> SequenceTerm<T>
     {
 
         return SequenceTerm {terms, operation};

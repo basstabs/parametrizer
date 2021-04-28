@@ -6,7 +6,7 @@ use super::Term;
 struct PiecewisePair<T: Number>
 {
 
-    term: Box<dyn Term<T>>,
+    term: Box<dyn Term<T> + Send + Sync>,
     after: T //The time after which to apply the term
 
 }
@@ -55,7 +55,7 @@ impl<T: Number> PiecewiseTerm<T>
     /// assert_eq!(5, piecewise.evaluate(8));
     /// assert_eq!(9, piecewise.evaluate(20));
     /// ```
-    pub fn add_part(&mut self, term: Box<dyn Term<T>>, after: T)
+    pub fn add_part(&mut self, term: Box<dyn Term<T> + Send + Sync>, after: T)
     {
 
         self.parts.push(PiecewisePair::<T> { term, after });

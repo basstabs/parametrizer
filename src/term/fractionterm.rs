@@ -5,8 +5,8 @@ use super::Term;
 pub struct FractionTerm<T: Number>
 {
 
-    numerator: Box<dyn Term<T>>,
-    denominator: Box<dyn Term<T>> 
+    numerator: Box<dyn Term<T> + Send + Sync>,
+    denominator: Box<dyn Term<T> + Send + Sync> 
 
 }
 
@@ -47,7 +47,7 @@ impl<T: Number> FractionTerm<T>
     /// let frac1 = FractionTerm::new(Box::new(const1), Box::new(variable));
     /// frac1.evaluate(0);
     /// ```
-    pub fn new(numerator: Box<dyn Term<T>>, denominator: Box<dyn Term<T>>) -> FractionTerm<T>
+    pub fn new(numerator: Box<dyn Term<T> + Send + Sync>, denominator: Box<dyn Term<T> + Send + Sync>) -> FractionTerm<T>
     {
 
         return FractionTerm::<T> { numerator, denominator };

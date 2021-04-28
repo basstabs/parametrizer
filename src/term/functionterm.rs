@@ -5,7 +5,7 @@ use super::Term;
 pub struct FunctionTerm<T: Number>
 {
 
-    term: Box<dyn Term<T>>,
+    term: Box<dyn Term<T> + Send + Sync>,
     function: fn(f64) -> f64
 
 }
@@ -32,7 +32,7 @@ impl<T: Number> FunctionTerm<T>
     /// assert_eq!((20.0_f64.sin()) as i32, sin.evaluate(5));
     /// assert_eq!(3.14_f64.cos(), cos.evaluate(3.14));
     /// ```
-    pub fn new(term: Box<dyn Term<T>>, function: fn(f64) -> f64) -> FunctionTerm<T>
+    pub fn new(term: Box<dyn Term<T> + Send + Sync>, function: fn(f64) -> f64) -> FunctionTerm<T>
     {
 
         return FunctionTerm::<T> { term, function };

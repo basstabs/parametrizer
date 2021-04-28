@@ -6,8 +6,8 @@ use super::Term;
 pub struct RandomTerm<T: Number>
 {
 
-    min: Box<dyn Term<T>>,
-    max: Box<dyn Term<T>>
+    min: Box<dyn Term<T> + Send + Sync>,
+    max: Box<dyn Term<T> + Send + Sync>
 
 }
 
@@ -37,7 +37,7 @@ impl<T: Number> RandomTerm<T>
     /// assert!(rand2.evaluate(3.0) >= 2.5);
     /// assert!(rand2.evaluate(15.0) < 15.0);
     /// ```
-    pub fn new(min: Box<dyn Term<T>>, max: Box<dyn Term<T>>) -> RandomTerm<T>
+    pub fn new(min: Box<dyn Term<T> + Send + Sync>, max: Box<dyn Term<T> + Send + Sync>) -> RandomTerm<T>
     {
 
         return RandomTerm {min, max};

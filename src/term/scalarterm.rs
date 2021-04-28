@@ -5,7 +5,7 @@ use super::Term;
 pub struct ScalarTerm<T: Number>
 {
 
-    term: Box<dyn Term<T>>,
+    term: Box<dyn Term<T> + Send + Sync>,
     scale: T
 
 }
@@ -32,7 +32,7 @@ impl<T: Number> ScalarTerm<T>
     /// assert_eq!(1.02 * 1.98, scalar1.evaluate(3.0));
     /// assert_eq!(6, scalar2.evaluate(2));
     /// ```
-    pub fn new(term: Box<dyn Term<T>>, scale: T) -> ScalarTerm<T>
+    pub fn new(term: Box<dyn Term<T> + Send + Sync>, scale: T) -> ScalarTerm<T>
     {
 
         return ScalarTerm { term, scale };

@@ -43,7 +43,7 @@ pub trait Term<T: Number>
 /// assert_eq!(8, spaces.evaluate(2));
 /// ```
 // ANCHOR: create
-pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFunction]) -> Result<Box<dyn Term<T>>, ParametrizerError>
+pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFunction]) -> Result<Box<dyn Term<T> + Send + Sync>, ParametrizerError>
 {
 
     let mut lower = text.to_lowercase();
@@ -77,7 +77,7 @@ pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFu
 /// assert_eq!(4, p2.evaluate(9));
 /// assert_eq!(9.0, eq.evaluate(2.5));
 /// ```
-pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFunction]) ->Result<Box<dyn Term<T>>, ParametrizerError>
+pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFunction]) ->Result<Box<dyn Term<T> + Send + Sync>, ParametrizerError>
 {
 
     if param.starts_with(PIECEWISE_IDENTIFIER) //Piecewise case
@@ -203,7 +203,7 @@ pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFu
 /// assert_eq!(4.0_f64.sin(), sin.evaluate(2.0));
 /// assert_eq!(8.0_f64.sin(), sin.evaluate(4.0));
 /// ```
-pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunction]) -> Result<Box<dyn Term<T>>, ParametrizerError>
+pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunction]) -> Result<Box<dyn Term<T> + Send + Sync>, ParametrizerError>
 {
 
     //Terminal case: check if the passed in string is simply "t", in which case we want a variable

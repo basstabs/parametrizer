@@ -9,8 +9,8 @@ use std::fmt;
 
 pub mod term;
 
-pub trait Number: Num + ToPrimitive + FromPrimitive + PartialOrd + FromStr + Copy + 'static {}
-impl<T: Num + ToPrimitive + FromPrimitive + PartialOrd + FromStr + Copy + 'static> Number for T {}
+pub trait Number: Num + ToPrimitive + FromPrimitive + PartialOrd + FromStr + Copy + Send + Sync + 'static {}
+impl<T: Num + ToPrimitive + FromPrimitive + PartialOrd + FromStr + Copy + Send + Sync + 'static> Number for T {}
 
 ///An error which describes why parametrization failed. Contains the param string which failed as
 ///well as the reason for failure.
@@ -95,7 +95,7 @@ pub struct Parametrizer<T: Number>
 
     //The top-level term for the parametrized function. Must be placed on the heap as the
     //recursion could be of theoretically unbounded depth
-    term: Box<dyn term::Term<T>>
+    term: Box<dyn term::Term<T> + Send + Sync>
 
 }
 
