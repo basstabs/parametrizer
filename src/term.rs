@@ -42,7 +42,6 @@ pub trait Term<T: Number>
 /// assert_eq!(6, subtraction.evaluate(3));
 /// assert_eq!(8, spaces.evaluate(2));
 /// ```
-// ANCHOR: create
 pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFunction]) -> Result<Box<dyn Term<T> + Send + Sync>, ParametrizerError>
 {
 
@@ -56,7 +55,6 @@ pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFu
     return quick_parametrization(param, functions);
 
 }
-// ANCHOR_END: create
 
 ///Checks the piecewise case, which can only occur at the top level, then recurses normally using
 ///parametrize_string. Can be called directly with a properly formatted param string to avoid the

@@ -120,7 +120,72 @@ impl<T: Number> Parametrizer<T>
     /// assert_eq!(8, spaces.evaluate(2));
     /// assert_eq!(11.0_f64.sin(), sin.evaluate(3.0));
     /// ```
-    // ANCHOR: new
+    ///
+    /// ```
+    /// use crate::parametrizer::Parametrizer;
+    ///
+    /// let constant = Parametrizer::new("1.35").unwrap();
+    ///
+    /// assert_eq!(1.35, constant.evaluate(2.0));
+    /// assert_eq!(1.35, constant.evaluate(3.4));
+    /// ```
+    ///
+    /// ```
+    /// use crate::parametrizer::Parametrizer;
+    ///
+    /// let variable = Parametrizer::new("t").unwrap();
+    ///
+    /// assert_eq!(3.0, variable.evaluate(3.0));
+    /// assert_ne!(4.2, variable.evaluate(1.25));
+    /// ```
+    ///
+    /// ```
+    /// use crate::parametrizer::Parametrizer;
+    ///
+    /// let addition = Parametrizer::new("1+t").unwrap();
+    ///
+    /// assert_eq!(9.0, addition.evaluate(8.0));
+    /// assert_eq!(1.16, addition.evaluate(0.16));
+    /// ```
+    ///
+    /// ```
+    /// use crate::parametrizer::Parametrizer;
+    ///
+    /// let equation = Parametrizer::new("13+((2*t)+5)").unwrap();
+    ///
+    /// assert_eq!(20, equation.evaluate(1));
+    /// assert_eq!(30, equation.evaluate(6));
+    /// ```
+    ///
+    /// ```
+    /// use crate::parametrizer::Parametrizer;
+    ///
+    /// let division = Parametrizer::new("6/t").unwrap();
+    ///
+    /// assert_eq!(2, division.evaluate(3));
+    /// assert_eq!(3, division.evaluate(2));
+    /// ```
+    ///
+    /// ```
+    /// use crate::parametrizer::Parametrizer;
+    ///
+    /// let equation = Parametrizer::new("13-t").unwrap();
+    /// let negation = Parametrizer::new("-t").unwrap();
+    ///
+    /// assert_eq!(10, equation.evaluate(3));
+    /// assert_eq!(-9, negation.evaluate(9));
+    /// ```
+    ///
+    /// ```
+    /// use crate::parametrizer::Parametrizer;
+    ///
+    /// let dynamic_rand = Parametrizer::new("rd(2+t<4*t)").unwrap();
+    /// let computed_rand = Parametrizer::new("rc(4<8)").unwrap();
+    ///
+    /// assert_eq!(computed_rand.evaluate(2), computed_rand.evaluate(4));
+    /// assert!(4 <= dynamic_rand.evaluate(2));
+    /// assert!(16 > dynamic_rand.evaluate(4));
+    /// ```
     pub fn new(param: &str) -> Result<Parametrizer<T>, ParametrizerError>
     {
 
@@ -132,7 +197,6 @@ impl<T: Number> Parametrizer<T>
         ]);
 
     }
-    // ANCHOR_END: new
 
     ///Constructor which allows for the user to define additional functions using a vector of
     ///ParametrizerFunction structs. Formats the param string like Parametrizer::new, with similar
@@ -161,7 +225,6 @@ impl<T: Number> Parametrizer<T>
     /// assert_eq!(7.0_f64.ln(), logarithm_and_square.evaluate(2.0));
     /// assert_eq!(28.0_f64.ln(), logarithm_and_square.evaluate(5.0));
     /// ```
-    // ANCHOR: function
     pub fn new_functions(param: &str, functions: Vec<ParametrizerFunction>) -> Result<Parametrizer<T>, ParametrizerError>
     {
 
@@ -170,7 +233,6 @@ impl<T: Number> Parametrizer<T>
         return Ok(Parametrizer::<T> { term });
 
     }
-    // ANCHOR_END: function
 
     ///Constructor which skips the added string formatting of Parametrizer::new and
     ///Parametrizer::new_functions, potentially speeding up parsing at the cost of unpredictable
@@ -196,7 +258,6 @@ impl<T: Number> Parametrizer<T>
     /// assert_eq!(11.0_f64.sin(), sin.evaluate(3.0));
     /// assert_eq!(8.0_f64.ln(), log.evaluate(5.0));
     /// ```
-    // ANCHOR: quick
     pub fn quick_new(param: &str, functions: Vec<ParametrizerFunction>) -> Result<Parametrizer<T>, ParametrizerError>
     {
 
@@ -205,7 +266,6 @@ impl<T: Number> Parametrizer<T>
         return Ok(Parametrizer::<T> { term });
 
     }
-    // ANCHOR_END: quick
 
     ///Used to compute the parametric function at a specific point. As the parsing is done once at
     ///creation time, the only overhead is due to pointers and recursion.
