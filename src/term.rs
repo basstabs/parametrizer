@@ -78,6 +78,20 @@ pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFu
 pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFunction]) ->Result<Box<dyn Term<T> + Send + Sync>, ParametrizerError>
 {
 
+    //Check to see if the string starts with a function identifier, which is necessary because
+    //identifiers may start with PIECEWISE_IDENTIFIER
+    for function in functions
+    {
+
+        if param.starts_with(function.shorthand())
+        {
+
+            return parametrize_string(param, functions);
+
+        }
+
+    }
+
     if param.starts_with(PIECEWISE_IDENTIFIER) //Piecewise case
     {
 
@@ -362,7 +376,6 @@ pub fn parametrize_string<T: Number>(param: &str, functions: &[ParametrizerFunct
     {
 
         let shorthand = function.shorthand();
-        println!("{}", shorthand);
         if param.starts_with(shorthand) && param.ends_with(")")
         {
 
@@ -557,6 +570,38 @@ mod term_tests
             Err(e) => assert_eq!(e.reason, "More than one division symbol in a term.")
 
         }
+
+    }
+
+    #[test]
+    fn test_identifiers ()
+    {
+
+        fn polynomial(t: f64) -> f64
+        {
+
+            return t*t+2.0*t+1.0;
+
+        }
+
+        let succeed = quick_parametrization::<f32>("poly(t)", &vec![super::ParametrizerFunction::new("poly".to_string(), polynomial)]);
+        let fail = quick_parametrization::<f32>("poly(t)", &[]);
+
+        match succeed
+        {
+
+            Ok(t) => assert_eq!(16.0, t.evaluate(3.0)),
+            Err(_) => panic!("Expected successful parsing of added function.")
+
+        };
+
+        match fail
+        {
+
+            Ok(_) => panic!("Expected unable to parse error"),
+            Err(e) => assert_eq!(e.reason, "Unexpected number of splits for piecewise part. Each part should be separated by an = sign and contain a term and a number separated by a >")
+
+        };
 
     }
 
