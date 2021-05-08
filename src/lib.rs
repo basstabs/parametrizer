@@ -1,3 +1,105 @@
+//! A simple, safe crate for parsing properly-formatted math strings which represent parametric functions into Rust functions that compute them. Ported from an earlier version for Javascript.
+//!
+//! # Example Usage
+//!
+//! Simply create a Parametrizer struct by passing a string to one of its constructors and call the evaluate method:
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! let division = Parametrizer::new("4\\2").unwrap();
+//! let subtraction = Parametrizer::new("15-3*t").unwrap();
+//! let spaces = Parametrizer::new("6 + T").unwrap();
+//! let sin = Parametrizer::new("sin(t*t + t - 1)").unwrap();
+//!
+//! assert_eq!(2, division.evaluate(8));
+//! assert_eq!(6, subtraction.evaluate(3));
+//! assert_eq!(8, spaces.evaluate(2));
+//! assert_eq!(11.0_f64.sin(), sin.evaluate(3.0));
+//! ```
+//!
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! let constant = Parametrizer::new("1.35").unwrap();
+//!
+//! assert_eq!(1.35, constant.evaluate(2.0));
+//! assert_eq!(1.35, constant.evaluate(3.4));
+//! ```
+//!
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! let variable = Parametrizer::new("t").unwrap();
+//!
+//! assert_eq!(3.0, variable.evaluate(3.0));
+//! assert_ne!(4.2, variable.evaluate(1.25));
+//! ```
+//!
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! let addition = Parametrizer::new("1+t").unwrap();
+//!
+//! assert_eq!(9.0, addition.evaluate(8.0));
+//! assert_eq!(1.16, addition.evaluate(0.16));
+//! ```
+//!
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! let equation = Parametrizer::new("13+((2*t)+5)").unwrap();
+//!
+//! assert_eq!(20, equation.evaluate(1));
+//! assert_eq!(30, equation.evaluate(6));
+//! ```
+//!
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! let division = Parametrizer::new("6/t").unwrap();
+//!
+//! assert_eq!(2, division.evaluate(3));
+//! assert_eq!(3, division.evaluate(2));
+//! ```
+//!
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! let equation = Parametrizer::new("13-t").unwrap();
+//! let negation = Parametrizer::new("-t").unwrap();
+//!
+//! assert_eq!(10, equation.evaluate(3));
+//! assert_eq!(-9, negation.evaluate(9));
+//! ```
+//!
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! let dynamic_rand = Parametrizer::new("rd(2+t<4*t)").unwrap();
+//! let computed_rand = Parametrizer::new("rc(4<8)").unwrap();
+//!
+//! assert_eq!(computed_rand.evaluate(2), computed_rand.evaluate(4));
+//! assert!(4 <= dynamic_rand.evaluate(2));
+//! assert!(16 > dynamic_rand.evaluate(4));
+//! ```
+//!
+//! ```
+//! use crate::parametrizer::Parametrizer;
+//!
+//! //Piecewise functions
+//! let p1 = Parametrizer::new("p2>0|4>2|8>6").unwrap();
+//! let p2 = Parametrizer::new("p2*t>0|4>2").unwrap();
+//!
+//! assert_eq!(2, p1.evaluate(1));
+//! assert_eq!(4, p1.evaluate(5));
+//! assert_eq!(2, p2.evaluate(1));
+//! assert_eq!(4, p2.evaluate(9));
+//! ```
+//!
+//! The underlying terms are public to allow for the manual composition of terms in code to avoid
+//! the string parsing overhead. See the `term` module documentation for more information. See the
+//! `Parametrizer` struct's implementation documentation to see more usage examples.
+
 extern crate num;
 
 use num::Num;
