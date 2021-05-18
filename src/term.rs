@@ -75,6 +75,19 @@ pub fn create_parametrization<T: Number>(text: &str, functions: &[ParametrizerFu
 /// assert_eq!(4, p2.evaluate(9));
 /// assert_eq!(9.0, eq.evaluate(2.5));
 /// ```
+///
+/// ```
+/// use crate::parametrizer::term::quick_parametrization;
+///
+/// let p1 = quick_parametrization::<i32>("p[10]t>0|t*t+-16>5", &[]).unwrap();
+/// let p2 = quick_parametrization::<f32>("p[3.5]4>0|8>2", &[]).unwrap();
+///
+/// assert_eq!(4, p1.evaluate(4));
+/// assert_eq!(48, p1.evaluate(18));
+/// assert_eq!(3, p1.evaluate(23));
+/// assert_eq!(4.0, p2.evaluate(8.9));
+/// assert_eq!(8.0, p2.evaluate(30.1));
+/// ```
 pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFunction]) ->Result<Box<dyn Term<T> + Send + Sync>, ParametrizerError>
 {
 
@@ -95,11 +108,45 @@ pub fn quick_parametrization<T: Number>(param: &str, functions: &[ParametrizerFu
     if param.starts_with(PIECEWISE_IDENTIFIER) //Piecewise case
     {
 
-        let parts_string = &(param[PIECEWISE_IDENTIFIER.len()..]);
+        let simplified_string = &(param[PIECEWISE_IDENTIFIER.len()..]);
+
+        let mut parts_string = &(param[PIECEWISE_IDENTIFIER.len()..]);
+
+        let mut looping = false;
+
+        let mut loop_value = T::zero();
+
+        if simplified_string.starts_with("[")
+        {
+
+            let closing_index = match simplified_string.find("]")
+            {
+
+                Some(i) => i,
+                None => return Err(ParametrizerError { param: simplified_string.to_string(), reason: "Unable to find closing bracket for looping piecewise term." })
+
+            };
+
+
+            let loop_string = &(simplified_string[1..closing_index]);
+
+            loop_value = match loop_string.parse()
+            {
+
+                Ok(l) => l,
+                Err(_e) => return Err(ParametrizerError { param: loop_string.to_string(), reason: "Could not parse the loop value for looping piecewise term." })
+
+            };
+
+            parts_string = &(param[closing_index+2..]);
+
+            looping = true;
+
+        }
 
         let parts : Vec<&str> = parts_string.split("|").collect();
 
-        let mut piecewise = piecewiseterm::PiecewiseTerm::new();
+        let mut piecewise = if looping { piecewiseterm::PiecewiseTerm::looping(loop_value) } else { piecewiseterm::PiecewiseTerm::new() };
 
         for part in parts
         {

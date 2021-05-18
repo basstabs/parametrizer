@@ -90,10 +90,16 @@
 //! let p1 = Parametrizer::new("p2>0|4>2|8>6").unwrap();
 //! let p2 = Parametrizer::new("p2*t>0|4>2").unwrap();
 //!
+//! //Looping piecewise functions
+//! let p3 = Parametrizer::new("p[10]18>0|23>4").unwrap();
+//!
 //! assert_eq!(2, p1.evaluate(1));
 //! assert_eq!(4, p1.evaluate(5));
 //! assert_eq!(2, p2.evaluate(1));
 //! assert_eq!(4, p2.evaluate(9));
+//!
+//! assert_eq!(18, p3.evaluate(23));
+//! assert_eq!(23, p3.evaluate(106));
 //! ```
 //!
 //! The underlying terms are public to allow for the manual composition of terms in code to avoid

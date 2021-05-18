@@ -16,7 +16,8 @@ struct PiecewisePair<T: Number>
 pub struct PiecewiseTerm<T: Number>
 {
 
-    parts: Vec<PiecewisePair<T>>
+    parts: Vec<PiecewisePair<T>>,
+    cycle: Option<T>
 
 }
 
@@ -28,7 +29,16 @@ impl<T: Number> PiecewiseTerm<T>
     pub fn new() -> PiecewiseTerm<T>
     {
 
-        return PiecewiseTerm { parts: Vec::new() };
+        return PiecewiseTerm { parts: Vec::new(), cycle: None };
+
+    }
+
+    ///Creates a looping piecewise term that evaluates anything larger than the looping number to
+    ///its remainder with respect to the looping number
+    pub fn looping(c: T) -> PiecewiseTerm<T>
+    {
+
+        return PiecewiseTerm { parts: Vec::new(), cycle: Some(c) };
 
     }
 
@@ -42,18 +52,31 @@ impl<T: Number> PiecewiseTerm<T>
     /// use crate::parametrizer::term::Term;
     ///
     /// let mut piecewise = PiecewiseTerm::new();
+    /// let mut looping = PiecewiseTerm::looping(10);
     ///
     /// let const1 = ConstantTerm::new(3);
     /// let const2 = ConstantTerm::new(5);
     /// let const3 = ConstantTerm::new(9);
     ///
+    /// let const4 = ConstantTerm::new(2);
+    /// let const5 = ConstantTerm::new(4);
+    /// let const6 = ConstantTerm::new(6);
+    ///
     /// piecewise.add_part(Box::new(const1), 0);
     /// piecewise.add_part(Box::new(const2), 5);
     /// piecewise.add_part(Box::new(const3), 10);
     ///
+    /// looping.add_part(Box::new(const4), 1);
+    /// looping.add_part(Box::new(const5), 5);
+    /// looping.add_part(Box::new(const6), 9);
+    ///
     /// assert_eq!(3, piecewise.evaluate(2));
     /// assert_eq!(5, piecewise.evaluate(8));
     /// assert_eq!(9, piecewise.evaluate(20));
+    ///
+    /// assert_eq!(2, looping.evaluate(3));
+    /// assert_eq!(4, looping.evaluate(16));
+    /// assert_eq!(6, looping.evaluate(109));
     /// ```
     pub fn add_part(&mut self, term: Box<dyn Term<T> + Send + Sync>, after: T)
     {
@@ -69,7 +92,7 @@ impl<T: Number> Term<T> for PiecewiseTerm<T>
 
     ///Iterates through all of the piecewise parts, returning the evluation of the term assigned to
     ///the the interval containing t
-    fn evaluate(&self, t: T) -> T
+    fn evaluate(&self, time: T) -> T
     {
 
         let mut iter = self.parts.iter();
@@ -81,6 +104,20 @@ impl<T: Number> Term<T> for PiecewiseTerm<T>
             None => return T::zero()
 
         };
+
+        let mut t = time;
+
+        if let Some(c) = self.cycle
+        {
+
+            if t > c
+            {
+
+                t = t % c;
+
+            }
+
+        }
 
         for part in iter
         {
